@@ -4,11 +4,15 @@ import(
 	"fmt"
 	"context"
 	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/options"
-	 "github.com/gofiber/fiber/v2"
-	 "go.mongodb.org/mongo-driver/bson"
-	 "go.github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Book struct {
@@ -16,9 +20,9 @@ type Book struct {
 	Title  string `json:"title,omitempty" bson:"title,omitempty"`
 	Author string `json:"author,omitempty" bson:"author,omitempty"`
 }
-
-func connectDB() *mongo.Client 
-{
+var bookCollection *mongo.Collection
+func connectDB() {
+	
     err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -30,36 +34,38 @@ func connectDB() *mongo.Client
 	if err != nil {
 		panic(err)
 	}
-	collection := client.Database("bookstore").Collection("books")
-
-	defer func(){
-		if err = client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
 		
-	return client
+		bookCollection = client.Database("bookstore").Collection("books")
 }
 
 func main(){
    app := fiber.New()
 
-   app.Get("/", libsGet)
+   app.Get("/book/:id", libsGet)
    app.Post("/book", libsPost)
-   app.Put("/book", libsPut)
-   app.Delete("/book:id", libsDelete)
+   app.Put("/book/:id", libsPut)
+   //app.Delete("/book:id", libsDelete)
 
    log.Fatal(app.Listen(":3000"))
    log.Println("Server running on port 3000")
 } 
 
-func libsPut(c *fiber.Ctx) error {
-	client := connectDB()
+func libsPost(c *fiber.Ctx) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := connectDB()
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to connect to database",
+		})
+	}
 
 	var books []Book
 
 	if err := c.BodyParser(&books); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "Failed to parse request body",
 		})
 	}
@@ -70,29 +76,76 @@ func libsPut(c *fiber.Ctx) error {
 		Author: books.Author,
 	}
 
-	result, err := client.InsertOne(context.TODO(), newBook)
+	result, err := bookCollection.InsertOne(ctx, newBook)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to insert book into database",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(result)
+	return c.Status(http.StatusCreated).JSON(result)
      
 
 }
 
 func libsGet(c *fiber.Ctx) error {
-	client := connectDB()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()                                                          	
+	
+	client, err := connectDB()
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to connect to database",
+		})
+	}
 
 	var books []Book
-	objId, _ := c.Params("id")
-	err := client.FindOne(context.TODO(), bson.M{"id": objId}).Decode(&books)
+	userId, _ := c.Params("id")
+	objId := primitive.ObjectIDFromHex(userId)
+	err := bookCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&books)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
 			"error": "Book not found",
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(books)
+}
+
+func libsPut(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := connectDB()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to connect to database",
+		})
+	}
+
+	var updateBooks []Book
+	userId, _ := c.Params("id")
+	objId := primitive.ObjectIDFromHex(userId)
+	if err := c.BodyParser(&books); err != nil {
+		return c.Status(http.StatusBadRequest)
+	}
+
+	filter := bson.M{"_id", objId}
+	update := bson.M{
+		"$set": bson.M {
+			"Title" : updateBooks.Title,
+			"Author": updateBooks.Author,
+		},
+	}
+
+	result, err := bookCollection.updateOne(ctx, filter, update)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"cant update books",
+		})
+	}
+
+	return c.Status(http.StatusOk).JSON(fiber.Map{
+			"cant update books",
+	})
+
 }
