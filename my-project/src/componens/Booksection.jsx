@@ -28,6 +28,8 @@ const Booksection = () => {
     }
   };
 
+  //soon fixed
+
   const createBook = async (bookData) => {
     try {
       const url = 'http://localhost:3000/book';
@@ -65,6 +67,7 @@ const Booksection = () => {
         <div className="grid grid-cols-4 grid-rows-4 gap-5 rounded-2xl my-8  p-5 shadow-inner">
             <div className="row-span-4 h-64 rounded-xl bg-white p-4 shadow-sm block max-w-sm border border-default rounded-base">
                   <div className='relstive h-10 flex items-center justify-center'>
+                 {/* fixing this soon */}
                   {books.map((book) =>(
                     <div key={book.id}>
                       <span>
