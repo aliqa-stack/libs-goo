@@ -7,6 +7,7 @@ import(
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -40,7 +41,13 @@ func main(){
 	connectDB()
    app := fiber.New()
 
-   app.Get("/book/:id", libsGet)
+   app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,OPTIONS",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
+   app.Get("/book", libsGet)
    app.Post("/book", libsPost)
    app.Put("/book/:id", libsPut)
    //app.Delete("/book:id", libsDelete)
@@ -51,7 +58,7 @@ func main(){
 
 func libsPost(c *fiber.Ctx) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 
@@ -84,23 +91,23 @@ func libsPost(c *fiber.Ctx) error {
 
 func libsGet(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()                                                          	
-	
+	defer cancel()
 
-	var books Book
-	userId := c.Params("id")
-	objId, err := bson.ObjectIDFromHex(userId)
+	var books []Book
+	cursor, err := bookCollection.Find(ctx, bson.M{})
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Invalid ID format",
-        })
-	}
-	err = bookCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&books)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Book not found",
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "cant find books",
 		})
 	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &books); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "cant find books",
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(books)
 }
 
