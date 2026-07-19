@@ -76,7 +76,7 @@ func libsPost(c *fiber.Ctx) error {
     Author: books.Author,
 }
 
-	result, err := bookCollection.InsertOne(ctx, newBook)
+	_, err := bookCollection.InsertOne(ctx, newBook)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -84,7 +84,7 @@ func libsPost(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(result)
+	return c.Status(fiber.StatusCreated).JSON(newBook)
      
 
 }
@@ -107,6 +107,8 @@ func libsGet(c *fiber.Ctx) error {
 			"error": "cant find books",
 		})
 	}
+
+
 
 	return c.Status(fiber.StatusOK).JSON(books)
 }
