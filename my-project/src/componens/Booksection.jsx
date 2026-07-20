@@ -65,31 +65,28 @@ const Booksection = () => {
 
   return (
     <div className='bg-gradient-to-br from-blue-400 to-indigo-600 '>
-      <div className='w-32 h-32 flex items-center'>
-        <div className='py-6 px-3 bg-[#FFA500]'>
-          <h1 className='text-2xl font-bold'>Gallery</h1>
+      <div className='w-full flex justify-center py-6'>
+        <div className='py-6 px-3 bg-[#FFA500] rounded-md'>
+          <h1 className='text-2xl font-bold text-center'>Gallery</h1>
         </div>
       </div>
       
-      <div className='flex items-center justify-center  my-6'>
-        <form onSubmit={createBook} className='md:flex '>
-          <label htmlFor="books" className='text-sm scale-0 focus:scale-1 focus:top-[-10px]'>Insert</label>
-          <input id='books' type="text" className="relative bg-gray-100 ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500  focus:border-violet-500 block w-64 p-2.5 checked:bg-emerald-500" 
-          value={libs} onChange={(e) => setInsertBook(e.target.value)} />
-          <input id='books' type="text" className="relative bg-gray-100 ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500  focus:border-violet-500 block w-64 p-2.5 checked:bg-emerald-500" 
-
-          value={auth} 
-          onChange={(e) => setAuthor(e.target.value)} />
-          <div className='flex justify-between'>
-
-          <button type='submit' disabled={isInvalid} className=''>submit</button>
-          </div>
+      <div className='flex items-center justify-center my-6'>
+        <form onSubmit={createBook} className='flex flex-col gap-4 items-center'>
+          <input id='books' type="text" className="w-64 bg-gray-100 ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 p-2.5" 
+            value={libs} onChange={(e) => setInsertBook(e.target.value)} 
+            placeholder='Book title' />
+          <input id='author' type="text" className="w-64 bg-gray-100 ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 p-2.5" 
+            value={auth} 
+            onChange={(e) => setAuthor(e.target.value)} 
+            placeholder='Author name' />
+          <button type='submit' disabled={isInvalid} className='w-full py-3 px-3 bg-[#FFA500] rounded-md shadow-[5px_8px_0px_0px_rgba(0,0,0,1)] border border-solid border-black border-4  bg-disabled:opacity-50 disabled:cursor-not-allowed'>submit</button>
         </form>
 
 
 
       </div>
-            <div className="grid lg:grid-cols-4 gap-5 rounded-2xl my-8 p-5 shadow-inner">
+            <div className="grid lg:grid-cols-4 gap-5 rounded-2xl  p-5 shadow-inner">
   {books.map((book) => (
     <div
       key={book.id || book._id}
