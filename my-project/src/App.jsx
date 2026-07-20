@@ -5,6 +5,7 @@ import heroImg from './assets/hero.png'
 import Navbar from './componens/Navbar'
 import Headers from './componens/Headers'
 import Booksection from './componens/Booksection'
+import Footer from './componens/Footer'
 import './App.css'
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   <Navbar/>
   <Headers/>
   <Booksection/>
+  <Footer/>
   
   </>
  )

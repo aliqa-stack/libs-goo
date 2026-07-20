@@ -15,7 +15,7 @@ const Headers = () => {
 
         </div>
         <p className='text-lg sm:text-xl text-white/90'>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit.
+         Web for placing your favorite books ETC 
         </p>
         <div className='flex justify-center md:justify-start gap-4'>
           <a href="" className='px-6 py-3 bg-orange-400 rounded-lg font-semibold shadow-[5px_8px_0px_0px_rgba(0,0,0,1)] hover:bg-orange-500 transition'>Start Adding</a>
